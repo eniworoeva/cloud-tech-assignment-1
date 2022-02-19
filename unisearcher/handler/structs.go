@@ -10,7 +10,7 @@ type UniCache struct {
 type CountryCache struct {
 }
 
-type Response struct {
+type UniInfoResponse struct {
 	Name     string   `json:"name"`
 	Country  string   `json:"country"`
 	IsoCode  string   `json:"isocode"`

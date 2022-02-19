@@ -59,22 +59,24 @@ func handleGetRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	// Creates empty slice
 	cca2 := make([]string, 0)
+	// Adds isocodes into a slice, ignores duplicates
 	for _, uni := range UniCache {
 		if !functions.Contains(cca2, uni.AlphaTwoCode) {
 			cca2 = append(cca2, uni.AlphaTwoCode)
 		}
 	}
+
 	_ = fmt.Sprintf("https://restcountries.com/v3.1/alpha?codes=%s", strings.Join(cca2[:], ","))
 
-	out := make([]Response, 0, len(UniCache))
+	out := make([]UniInfoResponse, 0, len(UniCache))
+	//Uses information from UniCache to create a new struct with correct fields
 	for _, obj := range UniCache {
-		out = append(out, Response{Name: obj.Name, Country: obj.Country, IsoCode: obj.AlphaTwoCode, WebPages: obj.WebPages})
+		out = append(out, UniInfoResponse{Name: obj.Name, Country: obj.Country, IsoCode: obj.AlphaTwoCode, WebPages: obj.WebPages})
 	}
-
 	sendResponse(w, out)
 }
 
-func sendResponse(w http.ResponseWriter, r []Response) {
+func sendResponse(w http.ResponseWriter, r []UniInfoResponse) {
 	// Write content type header
 	w.Header().Add("content-type", "application/json")
 
