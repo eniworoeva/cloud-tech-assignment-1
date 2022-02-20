@@ -8,11 +8,16 @@ type UniCache struct {
 }
 
 type CountryCache struct {
+	CCA2      string            `json:"cca2"`
+	Languages map[string]string `json:"languages"`
+	Maps      map[string]string `json:"maps"`
 }
 
 type UniInfoResponse struct {
-	Name     string   `json:"name"`
-	Country  string   `json:"country"`
-	IsoCode  string   `json:"isocode"`
-	WebPages []string `json:"webpages"`
+	Name      string            `json:"name"`
+	Country   string            `json:"country"`
+	IsoCode   string            `json:"isocode"`
+	WebPages  []string          `json:"webpages"`
+	Languages map[string]string `json:"languages"`
+	Map       string            `json:"map"`
 }
