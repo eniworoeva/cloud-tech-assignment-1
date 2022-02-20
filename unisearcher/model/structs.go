@@ -1,4 +1,4 @@
-package handler
+package model
 
 type UniCache struct {
 	Name         string   `json:"name"`
@@ -20,4 +20,9 @@ type UniInfoResponse struct {
 	WebPages  []string          `json:"webpages"`
 	Languages map[string]string `json:"languages"`
 	Map       string            `json:"map"`
+}
+
+type BordersCache struct {
+	CCA3    string   `json:"cca3"`
+	Borders []string `json:"borders"`
 }
