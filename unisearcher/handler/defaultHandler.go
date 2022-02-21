@@ -11,7 +11,7 @@ import (
 Empty handler
 */
 func EmptyHandler(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "No functionality on root level", http.StatusOK)
+	http.Error(w, "No functionality on this level. Please use "+UNIINFO_PATH+", "+NEIGHBOURUNIS_PATH+" or "+DIAG_PATH, http.StatusOK)
 }
 
 //Method used to write response to API
