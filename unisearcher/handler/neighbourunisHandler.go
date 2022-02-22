@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,7 +18,6 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Retrieves necessary information from path
-	fPath := "/unisearcher/v1/neighbourunis/"
 	cDir, rName := path.Split(r.URL.Path)
 
 	limit := 10000
@@ -47,14 +47,6 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if m, err := path.Match(fPath, r.URL.Path); m && (err == nil) {
-		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}", http.StatusBadRequest)
-		return
-	} else if m2, err2 := path.Match(fPath+name, r.URL.Path); m2 && (err2 == nil) {
-		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}", http.StatusBadRequest)
-		return
-	}
-
 	if len(name) == 0 {
 		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}", http.StatusBadRequest)
 		return
@@ -67,10 +59,15 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 	bordersCache := make([]model.BordersCache, 0)
 
 	//Sends request to external API, returns JSON decoder
-	borderRequest := sendRequest(url)
+	borderRequest := functions.SendRequest(url)
+	if borderRequest == nil {
+		return
+	}
+
+	decoder := json.NewDecoder(borderRequest.Body)
 
 	//Decodes request, if successful -> continue.
-	if err := borderRequest.Decode(&bordersCache); err != nil {
+	if err := decoder.Decode(&bordersCache); err != nil {
 		log.Fatal(err)
 	}
 
@@ -80,24 +77,34 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 
 	url = fmt.Sprintf("https://restcountries.com/v3.1/alpha?codes=%s", strings.Join(b[:], ","))
 
-	countryRequest := sendRequest(url)
+	countryRequest := functions.SendRequest(url)
+	if countryRequest == nil {
+		return
+	}
+
+	decoder = json.NewDecoder(countryRequest.Body)
 
 	//Creates empty slice
 	countryCache := make([]model.CountryCache, 0)
 
 	//Decodes request
-	if err := countryRequest.Decode(&countryCache); err != nil {
+	if err := decoder.Decode(&countryCache); err != nil {
 		log.Fatal(err)
 	}
 
 	// URL to invoke
 	url = fmt.Sprintf("http://universities.hipolabs.com/search?name=%s", name)
 
-	uniRequest := sendRequest(url)
+	uniRequest := functions.SendRequest(url)
+	if uniRequest == nil {
+		return
+	}
+
+	decoder = json.NewDecoder(uniRequest.Body)
 
 	unis := make([]model.UniCache, 0)
 
-	if err := uniRequest.Decode(&unis); err != nil {
+	if err := decoder.Decode(&unis); err != nil {
 		log.Fatal(err)
 	}
 
@@ -129,5 +136,5 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	sendResponse(w, out)
+	functions.EncodeUniInfo(w, out)
 }

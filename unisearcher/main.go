@@ -4,11 +4,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"unisearcher/functions"
 	"unisearcher/handler"
 )
 
 //Body taken from 02-JSON-demo
 func main() {
+
+	functions.GetUpTime()
 	// Handle port assignment (either based on environment variable, or local override)
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -20,6 +23,7 @@ func main() {
 	http.HandleFunc(handler.DEFAULT_PATH, handler.EmptyHandler)
 	http.HandleFunc(handler.UNIINFO_PATH, handler.UniInfoHandler)
 	http.HandleFunc(handler.NEIGHBOURUNIS_PATH, handler.NeighbourUnisHandler)
+	http.HandleFunc(handler.DIAG_PATH, handler.DiagHandler)
 
 	// Start server
 	log.Println("Starting server on port " + port + " ...")

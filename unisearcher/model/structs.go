@@ -26,3 +26,10 @@ type BordersCache struct {
 	CCA3    string   `json:"cca3"`
 	Borders []string `json:"borders"`
 }
+
+type Diag struct {
+	UniversityAPI string `json:"universityAPI"`
+	CountryAPI    string `json:"countryAPI"`
+	Version       string `json:"version"`
+	Uptime        string `json:"uptime"`
+}
