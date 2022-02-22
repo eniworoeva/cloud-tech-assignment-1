@@ -71,9 +71,15 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	//Slice containing cca3 codes from country and bordering countries
-	b := bordersCache[0].Borders
-	b = append(b, bordersCache[0].CCA3)
+	//Slice containing cca3 codes from country and bordering
+	var b []string
+
+	for i := 0; i < len(bordersCache); i++ {
+		if !functions.Contains(b, bordersCache[i].CCA3) {
+			b = bordersCache[i].Borders
+			b = append(b, bordersCache[i].CCA3)
+		}
+	}
 
 	url = fmt.Sprintf("https://restcountries.com/v3.1/alpha?codes=%s", strings.Join(b[:], ","))
 

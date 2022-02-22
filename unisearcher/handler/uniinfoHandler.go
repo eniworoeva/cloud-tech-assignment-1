@@ -29,6 +29,12 @@ func UniInfoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/uniinfo/{query}", http.StatusBadRequest)
 		return
 	}
+
+	if len(r.URL.RawQuery) != 0 {
+		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/uniinfo/{query}", http.StatusBadRequest)
+		return
+	}
+
 	//Space friendly search :)
 	query = strings.Replace(path.Base(r.URL.Path), " ", "%20", -1)
 

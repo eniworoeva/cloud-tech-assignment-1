@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 	"unisearcher/functions"
 	"unisearcher/model"
@@ -16,17 +17,23 @@ func DiagHandler(w http.ResponseWriter, r *http.Request) {
 	uniDiag := functions.SendRequest("http://universities.hipolabs.com/")
 	countryDiag := functions.SendRequest("https://restcountries.com/")
 
+	uniApiR, countryApiR := "", ""
+
 	if uniDiag == nil {
-		return
+		uniApiR = strconv.Itoa(http.StatusNotFound)
+	} else {
+		uniApiR = uniDiag.Status
 	}
 
 	if countryDiag == nil {
-		return
+		countryApiR = strconv.Itoa(http.StatusNotFound)
+	} else {
+		countryApiR = countryDiag.Status
 	}
 
 	d := model.Diag{
-		UniversityAPI: uniDiag.Status,
-		CountryAPI:    countryDiag.Status,
+		UniversityAPI: uniApiR,
+		CountryAPI:    countryApiR,
 		Version:       VERSION,
 		Uptime:        fmt.Sprint(time.Since(functions.GetUpTime()).Round(time.Second)),
 	}

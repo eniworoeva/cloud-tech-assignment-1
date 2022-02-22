@@ -12,6 +12,7 @@ import (
 func main() {
 
 	functions.GetUpTime()
+
 	// Handle port assignment (either based on environment variable, or local override)
 	port := os.Getenv("PORT")
 	if port == "" {
