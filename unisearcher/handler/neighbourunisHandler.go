@@ -5,101 +5,129 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 	"unisearcher/functions"
 	"unisearcher/model"
 )
 
 func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
+		return
+	}
+	//Retrieves necessary information from path
+	fPath := "/unisearcher/v1/neighbourunis/"
+	cDir, rName := path.Split(r.URL.Path)
 
-		//Retrieves necessary information from path
-		fPath := "/unisearcher/v1/neighbourunis/"
-		cDir, q := path.Split(r.URL.Path)
-		country := ""
+	limit := 10000
 
-		if t := strings.Count(r.URL.Path, "/"); t != 5 {
-			http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{query}", http.StatusBadRequest)
+	// Space friendly query :)
+	name := strings.Replace(rName, " ", "%20", -1)
+
+	if validQuery := strings.Split(r.URL.RawQuery, "="); len(validQuery) != 2 && len(r.URL.RawQuery) != 0 {
+		http.Error(w, "Bad usage of query..\nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}?limit={any_postive_number}", http.StatusBadRequest)
+		return
+	}
+
+	if len(r.URL.RawQuery) != 0 {
+		if _, err := strconv.Atoi(strings.Split(r.URL.RawQuery, "=")[1]); err != nil {
+			http.Error(w, "Bad usage of query..\nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}?limit={any_postive_number}", http.StatusBadRequest)
 			return
 		}
-
-		if m, err := path.Match(fPath, r.URL.Path); m && (err == nil) {
-			http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{query}", http.StatusBadRequest)
-			return
-		} else if m2, err2 := path.Match(fPath+q, r.URL.Path); m2 && (err2 == nil) {
-			http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{query}", http.StatusBadRequest)
+		if validQuery := strings.Split(r.URL.RawQuery, "="); len(validQuery) != 2 {
+			http.Error(w, "Bad usage of query..\nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}?limit={any_postive_number}", http.StatusBadRequest)
 			return
 		}
+		limit, _ = strconv.Atoi(strings.Split(r.URL.RawQuery, "=")[1])
+	}
 
-		if len(q) == 0 {
-			http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{query}", http.StatusBadRequest)
-			return
-		}
+	if t := strings.Count(r.URL.Path, "/"); t != 5 {
+		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}", http.StatusBadRequest)
+		return
+	}
 
-		country = path.Base(cDir)
-		url := fmt.Sprintf("https://restcountries.com/v3.1/name/%s", country)
+	if m, err := path.Match(fPath, r.URL.Path); m && (err == nil) {
+		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}", http.StatusBadRequest)
+		return
+	} else if m2, err2 := path.Match(fPath+name, r.URL.Path); m2 && (err2 == nil) {
+		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}", http.StatusBadRequest)
+		return
+	}
 
-		//Empty slice
-		bordersCache := make([]model.BordersCache, 0)
+	if len(name) == 0 {
+		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}", http.StatusBadRequest)
+		return
+	}
 
-		//Sends request to external API, returns JSON decoder
-		borderRequest := sendRequest(url)
+	country := path.Base(cDir)
+	url := fmt.Sprintf("https://restcountries.com/v3.1/name/%s", country)
 
-		//Decodes request, if successful -> continue.
-		if err := borderRequest.Decode(&bordersCache); err != nil {
-			log.Fatal(err)
-		}
+	//Empty slice
+	bordersCache := make([]model.BordersCache, 0)
 
-		//Slice containing cca3 codes from country and bordering countries
-		b := bordersCache[0].Borders
-		b = append(b, bordersCache[0].CCA3)
+	//Sends request to external API, returns JSON decoder
+	borderRequest := sendRequest(url)
 
-		url = fmt.Sprintf("https://restcountries.com/v3.1/alpha?codes=%s", strings.Join(b[:], ","))
+	//Decodes request, if successful -> continue.
+	if err := borderRequest.Decode(&bordersCache); err != nil {
+		log.Fatal(err)
+	}
 
-		countryRequest := sendRequest(url)
+	//Slice containing cca3 codes from country and bordering countries
+	b := bordersCache[0].Borders
+	b = append(b, bordersCache[0].CCA3)
 
-		//Creates empty slice
-		countryCache := make([]model.CountryCache, 0)
+	url = fmt.Sprintf("https://restcountries.com/v3.1/alpha?codes=%s", strings.Join(b[:], ","))
 
-		//Decodes request
-		if err := countryRequest.Decode(&countryCache); err != nil {
-			log.Fatal(err)
-		}
+	countryRequest := sendRequest(url)
 
-		// URL to invoke
-		url = fmt.Sprintf("http://universities.hipolabs.com/search?name=%s", q)
+	//Creates empty slice
+	countryCache := make([]model.CountryCache, 0)
 
-		uniRequest := sendRequest(url)
+	//Decodes request
+	if err := countryRequest.Decode(&countryCache); err != nil {
+		log.Fatal(err)
+	}
 
-		unis := make([]model.UniCache, 0)
+	// URL to invoke
+	url = fmt.Sprintf("http://universities.hipolabs.com/search?name=%s", name)
 
-		if err := uniRequest.Decode(&unis); err != nil {
-			log.Fatal(err)
-		}
+	uniRequest := sendRequest(url)
 
-		if len(unis) == 0 {
-			http.Error(w, "No results found", http.StatusNotFound)
-			return
-		}
+	unis := make([]model.UniCache, 0)
 
-		//Creates an empy slice
-		out := make([]model.UniInfoResponse, 0, len(unis))
+	if err := uniRequest.Decode(&unis); err != nil {
+		log.Fatal(err)
+	}
 
-		//Uses information from UniCache and CountryCache to create a new struct with the correct fields
+	if len(unis) == 0 {
+		http.Error(w, "No results found", http.StatusNotFound)
+		return
+	}
+
+	//Creates an empy slice
+	out := make([]model.UniInfoResponse, 0, limit)
+
+	//Uses information from UniCache and CountryCache to create a new struct with the correct fields
+	for _, obj := range unis {
+
 		for _, c := range countryCache {
-			for _, obj := range unis {
-				if c.CCA2 == obj.AlphaTwoCode && !functions.StructContains(out, obj.Name) {
-					out = append(out, model.UniInfoResponse{
-						Name:      obj.Name,
-						Country:   obj.Country,
-						IsoCode:   obj.AlphaTwoCode,
-						WebPages:  obj.WebPages,
-						Languages: c.Languages,
-						Map:       c.Maps["openStreetMaps"],
-					})
-				}
+			if c.CCA2 == obj.AlphaTwoCode && !functions.StructContains(out, obj.Name) {
+				out = append(out, model.UniInfoResponse{
+					Name:      obj.Name,
+					Country:   obj.Country,
+					IsoCode:   obj.AlphaTwoCode,
+					WebPages:  obj.WebPages,
+					Languages: c.Languages,
+					Map:       c.Maps["openStreetMaps"],
+				})
 			}
 		}
-		sendResponse(w, out)
+
+		if len(out) == limit {
+			break
+		}
 	}
+	sendResponse(w, out)
 }
