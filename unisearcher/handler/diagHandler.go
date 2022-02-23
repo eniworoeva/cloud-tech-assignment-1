@@ -39,7 +39,7 @@ func DiagHandler(w http.ResponseWriter, r *http.Request) {
 		UniversityAPI: uniApiR,
 		CountryAPI:    countryApiR,
 		Version:       VERSION,
-		Uptime:        fmt.Sprint(time.Since(functions.GetUpTime()).Round(time.Second)),
+		Uptime:        fmt.Sprint(time.Since(functions.GetUpTime()).Seconds()),
 	}
 
 	// Write content type header
