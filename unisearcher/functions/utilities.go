@@ -8,6 +8,7 @@ import (
 	"unisearcher/model"
 )
 
+// Initialize global variable
 var timeStart = time.Now()
 
 // GetUpTime Returns timeStart
@@ -22,19 +23,6 @@ Used to prevent duplicates */
 func Contains(s []string, str string) bool {
 	for _, v := range s {
 		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
-// StructContains
-/* Variation of method above
-A simple function to check if a slice contains an element of UniInfoResponse
-Used to prevent duplicates */
-func StructContains(uniinfo []model.UniInfoResponse, str string) bool {
-	for _, v := range uniinfo {
-		if v.Name == str {
 			return true
 		}
 	}
@@ -71,7 +59,7 @@ func SendRequest(url string) *http.Response {
 	// Setting content type -> effect depends on the service provider
 	r.Header.Add("content-type", "application/json")
 
-	// Issue request
+	// Issues request
 	res, err := client.Do(r)
 	if err != nil || res == nil {
 		_ = fmt.Errorf("Error in response", err.Error())
