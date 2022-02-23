@@ -10,6 +10,7 @@ import (
 
 var timeStart = time.Now()
 
+// GetUpTime Returns timeStart
 func GetUpTime() time.Time {
 	return timeStart
 }

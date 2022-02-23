@@ -39,7 +39,10 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Bad usage of query..\nCorrect usage is /unisearcher/v1/neighbourunis/{country}/{name_or_partial_name}?limit={any_postive_number}", http.StatusBadRequest)
 			return
 		}
-		limit, _ = strconv.Atoi(strings.Split(r.URL.RawQuery, "=")[1])
+		if limit, _ = strconv.Atoi(strings.Split(r.URL.RawQuery, "=")[1]); limit < 1 {
+			http.Error(w, "Limit should be greater than/equal to 1", http.StatusBadRequest)
+			return
+		}
 	}
 
 	if t := strings.Count(r.URL.Path, "/"); t != 5 {
@@ -61,16 +64,18 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 	//Sends request to external API, returns JSON decoder
 	borderRequest := functions.SendRequest(url)
 	if borderRequest == nil {
+		http.Error(w, "Error connecting to Country API", http.StatusBadGateway)
 		return
 	}
 
 	decoder := json.NewDecoder(borderRequest.Body)
-
 	//Decodes request, if successful -> continue.
 	if err := decoder.Decode(&bordersCache); err != nil {
-		log.Fatal(err)
+		http.Error(w, "No results found", http.StatusNotFound)
+		return
 	}
 
+	fmt.Println(bordersCache)
 	//Slice containing cca3 codes from country and bordering
 	var b []string
 
@@ -81,10 +86,13 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	fmt.Println(b)
+
 	url = fmt.Sprintf("https://restcountries.com/v3.1/alpha?codes=%s", strings.Join(b[:], ","))
 
 	countryRequest := functions.SendRequest(url)
 	if countryRequest == nil {
+		http.Error(w, "Error connecting to Country API", http.StatusBadGateway)
 		return
 	}
 
@@ -103,6 +111,7 @@ func NeighbourUnisHandler(w http.ResponseWriter, r *http.Request) {
 
 	uniRequest := functions.SendRequest(url)
 	if uniRequest == nil {
+		http.Error(w, "Error connecting to Uni API", http.StatusBadGateway)
 		return
 	}
 

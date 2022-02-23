@@ -30,6 +30,8 @@ func UniInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(strings.Count(r.URL.Path, "/"))
+
 	if len(r.URL.RawQuery) != 0 {
 		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/uniinfo/{query}", http.StatusBadRequest)
 		return
@@ -44,6 +46,7 @@ func UniInfoHandler(w http.ResponseWriter, r *http.Request) {
 	//Issues new request
 	uniRequest := functions.SendRequest(url)
 	if uniRequest == nil {
+		http.Error(w, "Error connecting to Uni API", http.StatusBadGateway)
 		return
 	}
 
@@ -55,6 +58,11 @@ func UniInfoHandler(w http.ResponseWriter, r *http.Request) {
 	//Decodes request
 	if err := decoder.Decode(&unis); err != nil {
 		log.Fatal(err)
+	}
+
+	if len(unis) == 0 {
+		http.Error(w, "No results found", http.StatusNotFound)
+		return
 	}
 
 	//Creates empty Slice
@@ -73,6 +81,7 @@ func UniInfoHandler(w http.ResponseWriter, r *http.Request) {
 	//Issues new request
 	countryRequest := functions.SendRequest(url)
 	if countryRequest == nil {
+		http.Error(w, "Error connecting to Country API", http.StatusBadGateway)
 		return
 	}
 
