@@ -2,8 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"path"
 	"strconv"
 	"time"
 	"unisearcher/functions"
@@ -13,6 +13,13 @@ import (
 // DiagHandler
 //Diagnostic handler to showcases access to request content (headers, body, method, parameters, etc.)
 func DiagHandler(w http.ResponseWriter, r *http.Request) {
+
+	//Guard that prevents longer, unnecessary paths. ie if user enters /unisearcher/v1/diag/something/ it will return a http error
+	if m, err := path.Match("/unisearcher/v1/diag/", r.URL.Path); !m && (err == nil) {
+		http.Error(w, "Wrong usage of API. \nCorrect usage is /unisearcher/v1/diag/", http.StatusBadRequest)
+		return
+	}
+
 	//Issues requests to the external apis
 	uniDiag := functions.SendRequest("http://universities.hipolabs.com/")
 	countryDiag := functions.SendRequest("https://restcountries.com/")
@@ -34,12 +41,14 @@ func DiagHandler(w http.ResponseWriter, r *http.Request) {
 		countryApiR = countryDiag.Status
 	}
 
+	uptime := time.Since(functions.GetUpTime()).Seconds()
+
 	//Instantiates Diag
 	d := model.Diag{
 		UniversityAPI: uniApiR,
 		CountryAPI:    countryApiR,
 		Version:       VERSION,
-		Uptime:        fmt.Sprint(time.Since(functions.GetUpTime()).Seconds()),
+		Uptime:        strconv.Itoa(int(uptime)) + "s",
 	}
 
 	// Write content type header
@@ -54,5 +63,4 @@ func DiagHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error during encoding", http.StatusInternalServerError)
 		return
 	}
-
 }
