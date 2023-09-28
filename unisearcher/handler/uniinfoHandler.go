@@ -11,8 +11,22 @@ import (
 	"strings"
 )
 
+
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	}
+
+
+
+
 // UniInfoHandler /*
 func UniInfoHandler(w http.ResponseWriter, r *http.Request) {
+//handle cors
+	enableCors(&w)
+
+
+
 	//Error guard that prohibts requests that are not of type GET.
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)

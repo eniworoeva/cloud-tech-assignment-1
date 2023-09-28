@@ -6,7 +6,6 @@ import (
 	"os"
 	"osaigie/unisearcher/functions"
 	"osaigie/unisearcher/handler"
-	"github.com/rs/cors" // Import the CORS package
 )
 
 //Body taken from 02-JSON-demo
@@ -28,17 +27,6 @@ func main() {
 	http.HandleFunc(handler.DIAG_PATH, handler.DiagHandler)
 
 
-
-
-	  // Create a CORS middleware with the desired CORS options
-	  corsHandler := cors.New(cors.Options{
-        AllowedOrigins: []string{"*"}, // Allow requests from any origin
-        AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowedHeaders: []string{"*"},
-    })
-
-    // Wrap the default ServeMux with the CORS middleware
-    http.Handle("/", corsHandler.Handler(http.DefaultServeMux))
 
 	// Start server
 	log.Println("Starting server on port " + port + " ...")
