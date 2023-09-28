@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"osaigie/unisearcher/functions"
+	"osaigie/unisearcher/model"
 	"path"
 	"strings"
-	"unisearcher/functions"
-	"unisearcher/model"
 )
 
 // UniInfoHandler /*
