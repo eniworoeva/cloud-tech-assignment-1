@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"unisearcher/functions"
-	"unisearcher/handler"
+	"osaigie/unisearcher/functions"
+	"osaigie/unisearcher/handler"
 )
 
 //Body taken from 02-JSON-demo

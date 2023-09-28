@@ -3,11 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"osaigie/unisearcher/functions"
+	"osaigie/unisearcher/model"
 	"path"
 	"strconv"
 	"time"
-	"unisearcher/functions"
-	"unisearcher/model"
 )
 
 // DiagHandler

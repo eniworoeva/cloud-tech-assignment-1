@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"osaigie/unisearcher/model"
 	"time"
-	"unisearcher/model"
 )
 
 // Initialize global variable
